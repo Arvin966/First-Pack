@@ -1,0 +1,11 @@
+{
+  "name": "First Pack | Minecraft Java Resources",
+  "short_name": "First Pack",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fffaf5",
+  "theme_color": "#43291d",
+  "lang": "fa",
+  "dir": "rtl",
+  "icons": [{"src":"assets/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
