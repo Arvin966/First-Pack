@@ -85,3 +85,176 @@ button,input,select{font-family:inherit}
 .dark .fp-assistant-panel{background:#2a1d17;border-color:#604635}.dark .fp-assistant-head{background:linear-gradient(135deg,#3a2920,#2a1d17);border-color:#604635}.dark .fp-assistant-head span{color:#cdb8a9}.dark .fp-assistant-head button{background:#ffffff12;color:#f7eadf}.dark .fp-assistant-messages{background:#241914}.dark .fp-msg.bot{background:#3a2920;color:#f7eadf}.dark .fp-assistant-suggestions,.dark .fp-assistant-form{background:#2a1d17;border-color:#604635}.dark .fp-assistant-suggestions button,.dark .fp-assistant-form input{background:#241914;color:#f7eadf;border-color:#604635}.dark .fp-assistant-form button{background:#a56b48}
 @media(max-width:520px){.fp-assistant{right:12px;bottom:12px}.fp-assistant-launcher{width:58px;height:58px}.fp-assistant-panel{right:-1px;bottom:70px;width:calc(100vw - 24px);height:min(76vh,590px);min-height:390px;border-radius:20px}.fp-msg{max-width:92%}}
 @media(prefers-reduced-motion:reduce){.fp-assistant-panel,.fp-assistant-launcher{animation:none;transition:none}}
+
+
+/* First Pack visual refresh — warm Minecraft editorial theme */
+:root{
+  --fp-bg:#f4eadf;
+  --fp-bg-2:#fbf5ee;
+  --fp-surface:rgba(255,251,246,.86);
+  --fp-surface-strong:#fffaf5;
+  --fp-text:#3f291f;
+  --fp-muted:#79665a;
+  --fp-border:#e1cdbb;
+  --fp-accent:#70422a;
+  --fp-accent-2:#a66a3f;
+  --fp-green:#657b4b;
+  --fp-shadow:0 18px 50px rgba(67,41,29,.12);
+}
+body{
+  background:
+    radial-gradient(circle at 8% 8%,rgba(166,106,63,.14),transparent 24rem),
+    radial-gradient(circle at 92% 20%,rgba(101,123,75,.12),transparent 28rem),
+    linear-gradient(135deg,var(--fp-bg),var(--fp-bg-2) 48%,#efe0d1);
+  color:var(--fp-text);
+}
+body:before{
+  opacity:.16;
+  background-image:
+    linear-gradient(rgba(112,66,42,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(112,66,42,.055) 1px,transparent 1px);
+  background-size:28px 28px;
+  mask-image:linear-gradient(to bottom,#000,transparent 72%);
+}
+header{
+  background:rgba(255,250,245,.78);
+  border-bottom-color:var(--fp-border);
+  box-shadow:0 8px 30px rgba(67,41,29,.06);
+}
+.logo b{background:linear-gradient(145deg,#70422a,#a66a3f)}
+.hero{
+  background:
+    radial-gradient(circle at 75% 18%,rgba(255,245,190,.6),transparent 9rem),
+    linear-gradient(135deg,#ead3bd,#faf4ed 58%,#e6dcc7);
+  border-bottom:1px solid var(--fp-border);
+}
+.hero h1{color:var(--fp-text)}
+.hero h1 em{color:#8c5637}
+.hero-btn{background:linear-gradient(135deg,#70422a,#9a6240)}
+.section,.why,.discover{
+  position:relative;
+}
+.section{
+  background:rgba(255,250,245,.36);
+  border:1px solid rgba(225,205,187,.58);
+  border-radius:26px;
+  padding:22px;
+  margin:28px 7%;
+  box-shadow:0 10px 35px rgba(67,41,29,.045);
+}
+.card{
+  background:linear-gradient(145deg,rgba(255,251,246,.96),rgba(246,235,223,.92));
+  border:1px solid var(--fp-border);
+  box-shadow:0 12px 35px rgba(67,41,29,.08);
+}
+.card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 20px 45px rgba(67,41,29,.15);
+  border-color:#c9aa91;
+}
+.pic{
+  background:linear-gradient(135deg,#d9c2ad,#f1e7dc);
+}
+.badge{
+  background:rgba(63,41,31,.88);
+  backdrop-filter:blur(8px);
+}
+#shaders .badge{background:#596b3e}
+#textures .badge{background:#8a5a3b}
+#mods .badge{background:#76513d}
+#maps .badge{background:#536d57}
+#clients .badge{background:#5e536d}
+.filter{
+  background:rgba(255,250,245,.7);
+  border-color:var(--fp-border);
+}
+.filter.active{
+  background:var(--fp-accent);
+  border-color:var(--fp-accent);
+  box-shadow:0 8px 20px rgba(112,66,42,.18);
+}
+#themeBtn{
+  width:40px;height:40px;border-radius:12px;
+  border:1px solid var(--fp-border);
+  background:rgba(255,250,245,.72);
+  color:var(--fp-accent);
+  cursor:pointer;
+  font-size:20px;
+  display:grid;place-items:center;
+  transition:.2s ease;
+}
+#themeBtn:hover{transform:translateY(-2px);background:#fff8f1}
+.download{
+  background:#efe0d1;
+  color:#70422a;
+  border-top:1px solid #dfc9b5;
+}
+.modal .dialog{
+  background:linear-gradient(145deg,#fffaf5,#f2e6da);
+  border-color:var(--fp-border);
+  box-shadow:0 30px 90px rgba(45,28,20,.25);
+}
+select,#search{
+  background:rgba(255,250,245,.78);
+  border-color:var(--fp-border);
+  color:var(--fp-text);
+}
+footer{
+  background:linear-gradient(180deg,transparent,rgba(112,66,42,.08));
+}
+
+/* Dark mode: richer brown, warm highlights, less flat than the original */
+body.dark{
+  --fp-bg:#18120f;
+  --fp-bg-2:#211713;
+  --fp-surface:rgba(36,25,20,.88);
+  --fp-surface-strong:#281c17;
+  --fp-text:#f2e7dd;
+  --fp-muted:#c4aea0;
+  --fp-border:#4b372d;
+  --fp-accent:#c18a62;
+  --fp-accent-2:#d3a077;
+  --fp-green:#91a36f;
+  --fp-shadow:0 22px 60px rgba(0,0,0,.3);
+  background:
+    radial-gradient(circle at 10% 8%,rgba(177,119,75,.14),transparent 22rem),
+    radial-gradient(circle at 90% 22%,rgba(107,130,76,.12),transparent 25rem),
+    linear-gradient(135deg,#17110e,#211713 52%,#18120f);
+  color:var(--fp-text);
+}
+body.dark:before{
+  opacity:.09;
+  background-image:
+    linear-gradient(rgba(255,230,210,.09) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,230,210,.09) 1px,transparent 1px);
+}
+body.dark header{
+  background:rgba(29,21,17,.82);
+  border-bottom-color:#46332a;
+}
+body.dark .hero{
+  background:
+    radial-gradient(circle at 74% 18%,rgba(212,162,102,.12),transparent 10rem),
+    linear-gradient(135deg,#2c1d16,#1e1511 60%,#292017);
+}
+body.dark .section{background:rgba(36,25,20,.45);border-color:#47342b}
+body.dark .card{
+  background:linear-gradient(145deg,rgba(43,30,24,.96),rgba(32,23,19,.96));
+  border-color:#4a362c;
+}
+body.dark .card:hover{border-color:#765441;box-shadow:0 22px 50px rgba(0,0,0,.32)}
+body.dark .pic{background:linear-gradient(135deg,#3a2a22,#241a16)}
+body.dark .filter,body.dark #themeBtn,body.dark select,body.dark #search{
+  background:rgba(43,30,24,.84);
+  border-color:#4a362c;
+  color:var(--fp-text);
+}
+body.dark .filter.active{background:#8c5d3e;border-color:#a8724e}
+body.dark .download{background:#35251e;color:#e5c7af;border-color:#4b372d}
+body.dark .modal .dialog{background:linear-gradient(145deg,#2b1e18,#1e1511);border-color:#4b372d}
+body.dark .logo b{background:linear-gradient(145deg,#8b5b3d,#b67b55)}
+body.dark .hero h1 em{color:#d2a078}
+body.dark .hero p{color:#c6b2a5}
+@media (max-width:800px){
+  .section{margin:20px 4%;padding:15px;border-radius:20px}
+}

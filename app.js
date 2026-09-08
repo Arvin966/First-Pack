@@ -21,7 +21,7 @@ const labels = {
     selected:'منتخب', topRated:'بیشترین امتیاز', mostDownloaded:'بیشترین دانلود', newest:'جدیدترین',
     search:'جستجو بین منابع...', menuOpen:'باز کردن منو', menuClose:'بستن منو',
     theme:'تغییر پوسته', close:'بستن', rated:'★ امتیاز ثبت شد', loadError:'خطا در بارگذاری منابع. لطفاً صفحه را دوباره باز کنید.',
-    heroTitle:'Minecraft Java،<em>با یک ظاهر تازه.</em>', heroText:'منابع منتخب Minecraft Java را با اطلاعات واضح، امتیاز کاربران و دسترسی سریع به منبع اصلی پیدا کن.',
+    heroTitle:'دنیای ماینکرفت خودتو بساز', heroText:'منابع منتخب Minecraft Java را با اطلاعات واضح، امتیاز کاربران و دسترسی سریع به منبع اصلی پیدا کن.',
     discover:'منبع مورد علاقه‌ات را پیدا کن', why:'چرا First Pack؟', home:'خانه', resources:'منابع', contact:'تماس', clear:'پاک‌کردن داده‌های محلی',
     clearDone:'داده‌های محلی پاک شد', noImage:'تصویر در دسترس نیست', loading:'در حال بارگذاری...'
   },
@@ -34,7 +34,7 @@ const labels = {
     selected:'Featured', topRated:'Top rated', mostDownloaded:'Most downloaded', newest:'Newest',
     search:'Search resources...', menuOpen:'Open menu', menuClose:'Close menu',
     theme:'Toggle theme', close:'Close', rated:'★ Rated', loadError:'Could not load resources. Please reload the page.',
-    heroTitle:'Minecraft Java,<em>with a fresh look.</em>', heroText:'Discover selected Minecraft Java resources with clear details, ratings and quick access to the original source.',
+    heroTitle:'Build your own Minecraft world.', heroText:'Discover selected Minecraft Java resources with clear details, ratings and quick access to the original source.',
     discover:'Find your next favorite resource', why:'Why First Pack?', home:'Home', resources:'Resources', contact:'Contact', clear:'Clear local data',
     clearDone:'Local data cleared', noImage:'Image unavailable', loading:'Loading...'
   }
@@ -82,7 +82,74 @@ function sizeOf(x) {
   const v = Math.max(...matches.map(m => parseInt(m,10)));
   return v >= 64 ? '64x+' : `${v}x`;
 }
-function enrich(x,i,total) { return {...x,index:i,size:sizeOf(x),loader:x.category==='mods'?'Mod Loader dependent':'Minecraft Java',added:total-i}; }
+function modrinthTypeFor(x){
+  if(x.category==='mods') return 'mod';
+  if(x.category==='textures') return 'resourcepack';
+  if(x.category==='shaders') return 'shader';
+  return null;
+}
+function enrich(x,i,total) {
+  return {...x,index:i,size:sizeOf(x),loader:x.category==='mods'?'Mod Loader dependent':'Minecraft Java',
+    added:total-i, modrinthType:modrinthTypeFor(x)};
+}
+function directResourceUrl(x){
+  if(x?.url && !x.url.includes('?query=')) return x.url;
+  if(x?.modrinthType){
+    const slug=String(x.name).toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    return `https://modrinth.com/${x.modrinthType}/${slug}`;
+  }
+  return x?.url||'#';
+}
+function modrinthCacheKey(x){ return `fp:modrinth:${x.category}:${x.name}`; }
+async function resolveModrinthProject(x){
+  if(!x.modrinthType) return null;
+  const cached=safeStorage.get(modrinthCacheKey(x));
+  if(cached){ try { return JSON.parse(cached); } catch{} }
+  try{
+    const facets=encodeURIComponent(JSON.stringify([[`project_type:${x.modrinthType}`]]));
+    const url=`https://api.modrinth.com/v2/search?query=${encodeURIComponent(x.name)}&limit=5&facets=${facets}`;
+    const r=await fetch(url,{headers:{'Accept':'application/json'}});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    const hits=Array.isArray(d.hits)?d.hits:[];
+    const target=hits.sort((a,b)=>{
+      const an=String(a.title||a.name||'').toLocaleLowerCase(), bn=String(b.title||b.name||'').toLocaleLowerCase();
+      const q=String(x.name).toLocaleLowerCase();
+      return (an===q? -2:an.includes(q)?-1:0)-(bn===q?-2:bn.includes(q)?-1:0);
+    })[0];
+    if(!target?.project_id) return null;
+    let image=target.icon_url||x.image;
+    let gallery=[];
+    try{
+      const pr=await fetch(`https://api.modrinth.com/v2/project/${encodeURIComponent(target.project_id)}`,{headers:{'Accept':'application/json'}});
+      if(pr.ok){
+        const pd=await pr.json();
+        gallery=Array.isArray(pd.gallery)?pd.gallery:[];
+        image=gallery.find(g=>g.featured)?.url || gallery[0]?.url || pd.icon_url || image;
+      }
+    }catch{}
+    const result={url:`https://modrinth.com/${x.modrinthType}/${target.slug}`,image};
+    safeStorage.set(modrinthCacheKey(x),JSON.stringify(result));
+    return result;
+  }catch(err){ console.warn('Modrinth resolve failed',x.name,err); return null; }
+}
+async function hydrateModrinthResources(){
+  const targets=items.filter(x=>x.modrinthType);
+  let cursor=0;
+  const workers=Array.from({length:4},async()=>{
+    while(cursor<targets.length){
+      const x=targets[cursor++];
+      const resolved=await resolveModrinthProject(x);
+      if(resolved){ x.url=resolved.url; x.image=resolved.image; }
+      // Refresh only the visible cards after a resource resolves.
+      const imgEls=$$('img',document).filter(img=>img.dataset.fpName===x.name);
+      imgEls.forEach(img=>{img.src=x.image;});
+      const links=$$(`.card[data-index="${x.index}"] .download`);
+      links.forEach(a=>a.href=x.url);
+    }
+  });
+  await Promise.all(workers);
+}
 function formatNum(n) { return new Intl.NumberFormat(state.lang==='fa'?'fa-IR':'en-US',{notation:'compact',maximumFractionDigits:1}).format(n); }
 function filtered() {
   const q = normalize(state.q.trim());
@@ -104,7 +171,7 @@ function card(x) {
   const L=labels[state.lang], s=getStats(x);
   return `<article class="card" data-index="${x.index}">
     <button class="card-open" type="button" aria-label="${esc(L.details)}: ${esc(x.name)}">
-      <div class="pic"><img src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy" decoding="async" width="640" height="360"><span class="image-fallback" aria-hidden="true">${esc(L.noImage)}</span><b class="badge">${esc(x.badge)}</b></div>
+      <div class="pic"><img data-fp-name="${esc(x.name)}" src="${esc(x.image)}" alt="${esc(x.name)}" loading="lazy" decoding="async" width="640" height="360"><span class="image-fallback" aria-hidden="true">${esc(L.noImage)}</span><b class="badge">${esc(x.badge)}</b></div>
       <div class="body">
         <div class="meta"><span>${esc(x.meta)}</span><span>${esc(L.version)}: ${esc(x.version)}</span></div>
         <h3>${esc(x.name)}</h3><p>${esc(x.description)}</p>
@@ -112,7 +179,7 @@ function card(x) {
         <div class="stats"><span>★ ${s.rating.toFixed(1)}</span><span>↓ ${formatNum(s.downloads)}</span></div>
       </div>
     </button>
-    <a class="download" href="${esc(x.url)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(L.official)}</a>
+    <a class="download" href="${esc(directResourceUrl(x))}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">${esc(L.official)}</a>
   </article>`;
 }
 function pageBlock(c,arr) {
@@ -187,7 +254,7 @@ function openModal(x) {
   $('#modalDownloads').textContent=`↓ ${formatNum(s.downloads)} ${L.downloads} · ${formatNum(s.views)} ${L.views}`;
   const rate=$('#rateBtn'); rate.textContent=s.rated?L.rated:L.rate; rate.disabled=s.rated;
   rate.onclick=()=>{if(s.rated)return;s.rating=Math.min(5,(s.rating*s.ratings+5)/(s.ratings+1));s.ratings++;s.rated=true;saveStats(x,s);openModal(x);};
-  const source=$('#modalSource'); source.href=x.url; source.textContent=L.official;
+  const source=$('#modalSource'); source.href=directResourceUrl(x); source.textContent=L.official;
   $('#modal').classList.add('open'); $('#modal').setAttribute('aria-hidden','false'); document.body.classList.add('modal-open'); $('#modalClose').focus();
 }
 function closeModal() { $('#modal').classList.remove('open'); $('#modal').setAttribute('aria-hidden','true'); document.body.classList.remove('modal-open'); if(lastFocused?.focus)lastFocused.focus(); }
@@ -295,6 +362,9 @@ fetch('data.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`HTTP ${
   const valid=d.filter(x=>x&&x.name&&x.category&&x.url&&x.image);
   items=valid.map((x,i)=>enrich(x,i,valid.length));
   render();
+  // Replace placeholder artwork with real Modrinth project/gallery images
+  // and convert search links into the exact project page when available.
+  hydrateModrinthResources();
 })
 .catch(err=>{
   console.error(err); const L=labels[state.lang]; $('#count').textContent=L.loadError;
